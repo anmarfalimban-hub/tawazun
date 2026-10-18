@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="توازن">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0E6BA8">
+<title>توازن — الماء والصيام المتقطع</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;500;700;800&family=Tajawal:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#EEF5F9; --surface:#FFFFFF; --ink:#0D2333; --muted:#5A7384; --line:#D8E5EC;
+  --water:#0E6BA8; --aqua:#3FB8E0; --foam:#E2F3FA;
+  --night:#1A1D48; --night2:#2B2E6E; --moon:#F3EEDC; --gold:#E9B44C; --gold-soft:rgba(233,180,76,.16);
+  --ok:#1E9E74;
+  --display:"Alexandria","Tajawal","Geeza Pro","Segoe UI",Tahoma,sans-serif;
+  --body:"Tajawal","Geeza Pro","Segoe UI",Tahoma,sans-serif;
+  color-scheme:light;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#07121B; --surface:#0E1D29; --ink:#E2EEF4; --muted:#8EA6B5; --line:#1B3141;
+    --water:#4DB2E8; --aqua:#6FD3F2; --foam:#0E2A3B; --ok:#3CC79A; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#07121B; --surface:#0E1D29; --ink:#E2EEF4; --muted:#8EA6B5; --line:#1B3141;
+  --water:#4DB2E8; --aqua:#6FD3F2; --foam:#0E2A3B; --ok:#3CC79A; color-scheme:dark;
+}
+*,*::before,*::after{box-sizing:inherit}
+html,body{height:100%;margin:0}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased;-webkit-tap-highlight-color:transparent}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--aqua);outline-offset:3px}
+.view{max-width:560px;margin:0 auto;padding:16px 18px 40px;min-height:100%}
+[hidden]{display:none!important}
+h1,h2,h3{font-family:var(--display);margin:0;font-weight:700}
+.icon-btn{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;background:var(--surface);border:1px solid var(--line)}
+.icon-btn svg{width:22px;height:22px}
+
+/* ===== Home ===== */
+.top{display:flex;align-items:center;justify-content:space-between;margin:6px 0 18px}
+.hello{margin:0;color:var(--muted);font-size:15px}
+.brand{font-size:34px;font-weight:800;letter-spacing:-.5px;line-height:1.1}
+.worlds{display:grid;gap:14px}
+.world{position:relative;overflow:hidden;width:100%;min-height:clamp(220px,36vh,300px);border-radius:28px;text-align:right;padding:22px;display:flex;flex-direction:column;justify-content:flex-end;isolation:isolate;transition:transform .15s}
+.world:active{transform:scale(.985)}
+.world .w-kicker{font-family:var(--display);font-weight:500;font-size:15px;opacity:.85}
+.world .w-big{font-family:var(--display);font-weight:800;font-size:clamp(34px,10vw,46px);line-height:1.15;display:block;margin:4px 0}
+.world .w-sub{font-size:15px;opacity:.9}
+.world .w-go{position:absolute;top:20px;left:20px;width:42px;height:42px;border-radius:50%;display:grid;place-items:center}
+.water-world{background:linear-gradient(180deg,#DDF2FB,#BFE6F6);color:#06324F}
+.water-world .w-go{background:rgba(255,255,255,.6)}
+.ww-fill{position:absolute;inset:auto 0 0 0;height:0;z-index:-1;transition:height 1.2s cubic-bezier(.2,.8,.2,1);background:linear-gradient(180deg,#3FB8E0,#0E6BA8)}
+.ww-fill svg{position:absolute;bottom:100%;left:0;width:200%;height:22px;animation:drift 6s linear infinite}
+.ww-fill svg.b{animation-duration:9s;opacity:.5;height:26px}
+.water-world.filled{color:#fff}
+@keyframes drift{to{transform:translateX(50%)}}
+.night-world{background:radial-gradient(120% 90% at 20% 0%,var(--night2),var(--night));color:var(--moon)}
+.night-world .w-go{background:rgba(255,255,255,.1)}
+.stars{position:absolute;inset:0;z-index:-1}
+.moon{position:absolute;top:26px;right:26px;width:58px;height:58px;border-radius:50%;box-shadow:-12px 6px 0 0 var(--gold);transform:rotate(-20deg);z-index:-1}
+.home-note{margin:20px 4px 0;color:var(--muted);font-size:15px;text-align:center}
+
+/* ===== Shared screen header ===== */
+.bar{display:flex;align-items:center;gap:12px;margin:4px 0 14px}
+.bar h2{font-size:22px;flex:1}
+.chip{display:inline-flex;align-items:center;gap:6px;padding:6px 12px;border-radius:999px;font-size:14px;font-weight:700;font-family:var(--display)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:22px;padding:16px 18px;margin-top:14px}
+.card h3{font-size:17px;margin-bottom:8px}
+.muted{color:var(--muted)}
+.row{display:flex;align-items:center;gap:10px}
+.spacer{flex:1}
+
+/* ===== Water ===== */
+#water .chip{background:var(--foam);color:var(--water)}
+.stage{display:grid;grid-template-columns:150px 1fr;gap:18px;align-items:center;margin-top:6px}
+.bottle{width:150px;height:auto;display:block}
+.bottle .glass{fill:none;stroke:var(--water);stroke-width:3}
+.bottle .inside{fill:var(--foam)}
+.bottle .marks line{stroke:var(--water);stroke-width:2;opacity:.25}
+#lvl{transition:transform 1.1s cubic-bezier(.2,.8,.2,1)}
+.wave1{animation:wave 5s linear infinite}
+.wave2{animation:wave 8s linear infinite reverse;opacity:.55}
+@keyframes wave{from{transform:translateX(0)}to{transform:translateX(-100px)}}
+.amount{font-family:var(--display);font-weight:800;font-size:clamp(44px,13vw,60px);line-height:1;color:var(--water)}
+.amount small{font-size:20px;font-weight:500;margin-inline-start:4px}
+.of{margin:6px 0 10px;color:var(--muted)}
+.msg{font-family:var(--display);font-weight:500;font-size:17px;line-height:1.5}
+.adds{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}
+.add{background:var(--water);color:#fff;border-radius:20px;padding:14px 6px 12px;display:flex;flex-direction:column;align-items:center;gap:4px;font-family:var(--display);font-weight:700;font-size:18px;transition:transform .12s}
+.add:active{transform:scale(.95)}
+.add svg{width:26px;height:26px}
+.add span{font-family:var(--body);font-weight:500;font-size:13px;opacity:.9}
+.add.alt{background:var(--surface);color:var(--water);border:2px solid var(--water)}
+.undo{display:block;margin:10px auto 0;color:var(--muted);font-size:14px;text-decoration:underline;text-underline-offset:4px}
+.switch{position:relative;width:52px;height:30px;border-radius:999px;background:var(--line);transition:background .2s;flex:none}
+.switch::after{content:"";position:absolute;top:3px;right:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.switch[aria-checked="true"]{background:var(--ok)}
+.switch[aria-checked="true"]::after{transform:translateX(-22px)}
+.next-big{font-family:var(--display);font-weight:700;font-size:22px}
+.weekbars{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;align-items:end;height:120px;margin-top:6px}
+.wb{display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
+.wb i{display:block;width:100%;max-width:30px;border-radius:9px 9px 4px 4px;background:var(--aqua);min-height:4px;transition:height .8s}
+.wb i.full{background:var(--water)}
+.wb i.today{outline:2px solid var(--water);outline-offset:2px}
+.wb span{font-size:12px;color:var(--muted)}
+.log{list-style:none;margin:0;padding:0}
+.log li{display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px dashed var(--line);font-size:15px}
+.log li:last-child{border-bottom:0}
+.empty{color:var(--muted);font-size:15px;margin:0}
+
+/* ===== Fasting (night) ===== */
+#fast{background:radial-gradient(140% 60% at 50% -10%,var(--night2),var(--night) 60%);color:var(--moon);max-width:none;min-height:100vh}
+#fast>.inner{max-width:560px;margin:0 auto}
+#fast .icon-btn{background:rgba(255,255,255,.08);border-color:rgba(255,255,255,.12)}
+#fast .chip{background:var(--gold-soft);color:var(--gold)}
+#fast .card{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.1)}
+#fast .muted{color:rgba(243,238,220,.68)}
+.dial-wrap{position:relative;width:min(300px,82vw);margin:4px auto 0}
+.dial{width:100%;height:auto;display:block;direction:ltr}
+.dial .track{stroke:rgba(255,255,255,.1)}
+.dial .eat{stroke:var(--gold);opacity:.35}
+.dial .prog{transition:stroke-dasharray .8s}
+.dial text{fill:rgba(243,238,220,.6);font-size:11px;font-family:var(--body)}
+.dial-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+.phase{font-family:var(--display);font-weight:500;font-size:16px;color:var(--gold)}
+.count{font-family:var(--display);font-weight:800;font-size:clamp(38px,11vw,48px);line-height:1.15;direction:ltr;letter-spacing:.5px}
+.count-sub{font-size:14px;opacity:.75}
+.seg{display:flex;background:rgba(255,255,255,.08);border-radius:16px;padding:4px;margin:18px auto 0;max-width:340px}
+.seg button{flex:1;padding:10px 8px;border-radius:12px;font-weight:700;font-size:15px}
+.seg button[aria-pressed="true"]{background:var(--gold);color:var(--night)}
+.seg-note{text-align:center;font-size:14px;margin:8px 0 0}
+.stages{list-style:none;padding:0;margin:4px 0 0;position:relative}
+.stages li{display:grid;grid-template-columns:52px 1fr;gap:10px;padding:8px 0;opacity:.5}
+.stages li.on{opacity:1}
+.stages li.now b{color:var(--gold)}
+.stages .h{font-family:var(--display);font-weight:700;font-size:14px;color:var(--gold)}
+.stages b{display:block;font-family:var(--display);font-weight:500}
+.stages small{font-size:13px;opacity:.75}
+.allow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.allow button{border-radius:16px;padding:12px;background:rgba(255,255,255,.08);font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px}
+.allow button.done{background:var(--gold-soft);color:var(--gold)}
+.allow svg{width:20px;height:20px}
+.tabs{display:flex;gap:8px;margin:2px 0 6px}
+.tabs button{padding:6px 14px;border-radius:999px;font-weight:700;font-size:14px;background:rgba(255,255,255,.06)}
+.tabs button[aria-pressed="true"]{background:var(--moon);color:var(--night)}
+.meal{display:grid;grid-template-columns:62px 1fr;gap:12px;padding:14px 0;border-top:1px solid rgba(255,255,255,.1)}
+.meal:first-of-type{border-top:0}
+.meal .t{font-family:var(--display);font-weight:700;font-size:15px;color:var(--gold);line-height:1.3}
+.meal .t small{display:block;font-family:var(--body);font-weight:500;font-size:12px;color:rgba(243,238,220,.6)}
+.meal h4{margin:0;font-family:var(--display);font-weight:700;font-size:17px}
+.meal p{margin:2px 0 8px;font-size:15px;opacity:.8}
+.meal .acts{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.meal .acts button{padding:6px 12px;border-radius:12px;font-size:14px;font-weight:700;background:rgba(255,255,255,.08)}
+.meal .acts button.ate{background:var(--ok);color:#fff}
+.meal .p{font-size:13px;opacity:.7;margin-inline-start:auto}
+.meal.eaten h4{text-decoration:line-through;text-decoration-color:var(--gold);opacity:.7}
+.total{font-size:14px;text-align:left;opacity:.75;margin-top:4px}
+.dots{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:10px;text-align:center}
+.dots div{font-size:12px;opacity:.75}
+.dots i{display:block;width:28px;height:28px;margin:0 auto 4px;border-radius:50%;border:2px solid rgba(255,255,255,.2)}
+.dots i.y{background:var(--gold);border-color:var(--gold);box-shadow:inset -6px 0 0 rgba(26,29,72,.55)}
+.dots i.t{border-color:var(--gold)}
+.primary{width:100%;margin-top:12px;padding:14px;border-radius:16px;background:var(--gold);color:var(--night);font-family:var(--display);font-weight:700;font-size:17px}
+.primary[disabled]{opacity:.45}
+
+/* ===== Settings sheet ===== */
+.scrim{position:fixed;inset:0;background:rgba(5,15,25,.5);z-index:40;opacity:0;pointer-events:none;transition:opacity .2s}
+.scrim.open{opacity:1;pointer-events:auto}
+.sheet{position:fixed;inset:auto 0 0 0;z-index:41;max-width:560px;margin:0 auto;background:var(--surface);color:var(--ink);border-radius:26px 26px 0 0;padding:10px 20px calc(24px + env(safe-area-inset-bottom,0px));max-height:88vh;overflow:auto;transform:translateY(105%);visibility:hidden;transition:transform .28s cubic-bezier(.2,.8,.2,1),visibility 0s .28s}
+.sheet.open{transform:none;visibility:visible;transition:transform .28s cubic-bezier(.2,.8,.2,1)}
+.grab{width:42px;height:5px;border-radius:9px;background:var(--line);margin:0 auto 12px}
+.sheet h2{font-size:22px;margin-bottom:6px}
+.field{padding:14px 0;border-bottom:1px solid var(--line)}
+.field:last-of-type{border-bottom:0}
+.field label,.field .lbl{display:block;font-weight:700;margin-bottom:8px}
+.field input[type=text],.field input[type=number],.field select{width:100%;padding:12px;border-radius:12px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit}
+.field input[type=range]{width:100%;accent-color:var(--water)}
+.opts{display:flex;flex-wrap:wrap;gap:8px}
+.opts button{padding:8px 14px;border-radius:12px;border:1px solid var(--line);font-weight:700;font-size:15px}
+.opts button[aria-pressed="true"]{background:var(--water);border-color:var(--water);color:#fff}
+.hint{font-size:14px;color:var(--muted);margin:6px 0 0}
+.btn{padding:12px 16px;border-radius:14px;background:var(--water);color:#fff;font-weight:700}
+.btn.ghost{background:transparent;color:var(--water);border:1px solid var(--water)}
+.btn.danger{background:transparent;color:#C2413B;border:1px solid #C2413B}
+
+/* ===== Toast + celebration ===== */
+.toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top,0px));transform:translate(-50%,-160%);z-index:60;width:min(92vw,440px);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:18px;padding:14px 16px;box-shadow:0 12px 30px rgba(6,30,50,.18);transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+.toast.show{transform:translate(-50%,0)}
+.toast b{display:block;font-family:var(--display)}
+.toast span{font-size:15px;color:var(--muted)}
+.burst{position:fixed;inset:0;pointer-events:none;z-index:55}
+.burst i{position:absolute;width:12px;height:16px;border-radius:50% 50% 50% 50%/60% 60% 40% 40%;background:var(--aqua);animation:fly 1.4s ease-out forwards}
+@keyframes fly{to{transform:translate(var(--x),var(--y)) scale(.4);opacity:0}}
+@media (prefers-reduced-motion:reduce){
+  *,*::before,*::after{animation:none!important;transition:none!important}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ HOME ============ -->
+<section id="home" class="view">
+  <header class="top">
+    <div>
+      <p class="hello" id="hello">أهلاً</p>
+      <h1 class="brand">توازن</h1>
+    </div>
+    <button class="icon-btn" id="gearBtn" aria-label="الإعدادات">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    </button>
+  </header>
+
+  <div class="worlds">
+    <button class="world water-world" id="goWater" aria-label="افتح نظام شرب الماء">
+      <div class="ww-fill" id="homeFill">
+        <svg class="b" viewBox="0 0 200 20" preserveAspectRatio="none"><path fill="#3FB8E0" d="M0 10 Q12.5 0 25 10 T50 10 T75 10 T100 10 T125 10 T150 10 T175 10 T200 10 V20 H0Z"/></svg>
+        <svg viewBox="0 0 200 20" preserveAspectRatio="none"><path fill="#3FB8E0" d="M0 12 Q12.5 2 25 12 T50 12 T75 12 T100 12 T125 12 T150 12 T175 12 T200 12 V20 H0Z"/></svg>
+      </div>
+      <span class="w-go"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg></span>
+      <span class="w-kicker">نظام شرب الماء</span>
+      <strong class="w-big" id="homeWaterBig">٠ لتر</strong>
+      <span class="w-sub" id="homeWaterSub">من هدفك اليوم</span>
+    </button>
+
+    <button class="world night-world" id="goFast" aria-label="افتح نظام الصيام المتقطع">
+      <svg class="stars" viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <g fill="#F3EEDC">
+          <circle cx="40" cy="30" r="1.2" opacity=".8"/><circle cx="90" cy="60" r=".9" opacity=".5"/><circle cx="150" cy="22" r="1.4" opacity=".9"/>
+          <circle cx="200" cy="70" r="1" opacity=".6"/><circle cx="120" cy="100" r=".8" opacity=".4"/><circle cx="60" cy="120" r="1.1" opacity=".6"/>
+          <circle cx="180" cy="130" r=".9" opacity=".5"/><circle cx="25" cy="80" r=".8" opacity=".4"/><circle cx="240" cy="160" r="1" opacity=".4"/>
+        </g>
+      </svg>
+      <span class="moon" aria-hidden="true"></span>
+      <span class="w-go"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg></span>
+      <span class="w-kicker">الصيام المتقطع ١٦:٨</span>
+      <strong class="w-big" id="homeFastBig">صائم</strong>
+      <span class="w-sub" id="homeFastSub"></span>
+    </button>
+  </div>
+  <p class="home-note" id="homeNote"></p>
+</section>
+
+<!-- ============ WATER ============ -->
+<section id="water" class="view" hidden>
+  <div class="bar">
+    <button class="icon-btn" data-back aria-label="رجوع"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></button>
+    <h2>شرب الماء</h2>
+    <span class="chip" id="waterStreak"></span>
+  </div>
+
+  <div class="stage">
+    <svg class="bottle" viewBox="0 0 160 300" aria-hidden="true">
+      <defs>
+        <clipPath id="bclip"><path id="bshape" d="M60 8 H100 V40 C100 52 132 62 132 96 V272 C132 284 122 292 110 292 H50 C38 292 28 284 28 272 V96 C28 62 60 52 60 40 Z"/></clipPath>
+        <linearGradient id="wg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3FB8E0"/><stop offset="1" stop-color="#0E6BA8"/></linearGradient>
+      </defs>
+      <g clip-path="url(#bclip)">
+        <rect class="inside" x="0" y="0" width="160" height="300"/>
+        <g id="lvl" style="transform:translateY(292px)">
+          <path class="wave2" fill="#3FB8E0" d="M-100 6 Q-75 -4 -50 6 T0 6 T50 6 T100 6 T150 6 T200 6 T250 6 T300 6 V320 H-100Z"/>
+          <path class="wave1" fill="url(#wg)" d="M-100 10 Q-75 0 -50 10 T0 10 T50 10 T100 10 T150 10 T200 10 T250 10 T300 10 V320 H-100Z"/>
+        </g>
+      </g>
+      <g class="marks"><line x1="108" y1="140" x2="124" y2="140"/><line x1="108" y1="188" x2="124" y2="188"/><line x1="108" y1="236" x2="124" y2="236"/></g>
+      <use href="#bshape" class="glass"/>
+    </svg>
+    <div>
+      <div class="amount" id="wAmount">٠<small>مل</small></div>
+      <p class="of" id="wOf"></p>
+      <p class="msg" id="wMsg"></p>
+    </div>
+  </div>
+
+  <div class="adds">
+    <button class="add alt" data-ml="150"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 4h10l-1.4 15a2 2 0 0 1-2 1.8h-3.2a2 2 0 0 1-2-1.8z"/></svg>١٥٠<span>رشفات</span></button>
+    <button class="add" data-ml="cup" id="cupBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h14l-1.6 16a2 2 0 0 1-2 1.8H8.6a2 2 0 0 1-2-1.8z"/><path d="M6 10h12"/></svg><b id="cupLbl">٢٥٠</b><span>كوب</span></button>
+    <button class="add alt" data-ml="500"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 2h4v3c0 1 3 2 3 5v10a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V10c0-3 3-4 3-5z"/></svg>٥٠٠<span>قارورة</span></button>
+  </div>
+  <button class="undo" id="undoBtn" hidden>تراجع عن آخر إضافة</button>
+
+  <div class="card">
+    <div class="row">
+      <div>
+        <h3>التذكير التالي</h3>
+        <div class="next-big" id="nextRem"></div>
+        <p class="hint" id="remHint"></p>
+      </div>
+      <span class="spacer"></span>
+      <button class="switch" role="switch" id="waterSwitch" aria-label="تذكير الماء"></button>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>آخر ٧ أيام</h3>
+    <div class="weekbars" id="weekBars"></div>
+  </div>
+
+  <div class="card">
+    <h3>سجل اليوم</h3>
+    <ul class="log" id="wLog"></ul>
+  </div>
+</section>
+
+<!-- ============ FASTING ============ -->
+<section id="fast" class="view" hidden>
+ <div class="inner">
+  <div class="bar">
+    <button class="icon-btn" data-back aria-label="رجوع"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 6l6 6-6 6"/></svg></button>
+    <h2>الصيام المتقطع</h2>
+    <span class="chip" id="fastStreak"></span>
+  </div>
+
+  <div class="dial-wrap">
+    <svg class="dial" viewBox="0 0 300 300" aria-hidden="true">
+      <circle class="track" cx="150" cy="150" r="124" fill="none" stroke-width="18"/>
+      <circle class="eat" id="eatArc" cx="150" cy="150" r="124" fill="none" stroke-width="18"/>
+      <circle class="prog" id="progArc" cx="150" cy="150" r="124" fill="none" stroke-width="18" stroke-linecap="round"/>
+      <circle id="nowDot" r="11" fill="#F3EEDC" stroke="#1A1D48" stroke-width="4"/>
+      <text x="150" y="16" text-anchor="middle">١٢ ص</text>
+      <text x="290" y="154" text-anchor="end">٦ ص</text>
+      <text x="150" y="294" text-anchor="middle">١٢ م</text>
+      <text x="10" y="154">٦ م</text>
+    </svg>
+    <div class="dial-center">
+      <span class="phase" id="phase"></span>
+      <span class="count" id="count">00:00:00</span>
+      <span class="count-sub" id="countSub"></span>
+    </div>
+  </div>
+
+  <div class="seg" role="group" aria-label="موعد بداية الصيام">
+    <button data-start="20">يبدأ ٨ مساءً</button>
+    <button data-start="21">يبدأ ٩ مساءً</button>
+  </div>
+  <p class="seg-note muted" id="segNote"></p>
+
+  <div class="card">
+    <h3>رحلة صيامك الآن</h3>
+    <ol class="stages" id="stages"></ol>
+  </div>
+
+  <div class="card">
+    <h3>مسموح أثناء الصيام</h3>
+    <p class="muted" style="margin:0;font-size:15px">الماء والقهوة السوداء بدون سكر لا يكسران الصيام.</p>
+    <div class="allow">
+      <button id="coffeeBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M16 11h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M8 3v2M12 3v2"/></svg><span id="coffeeLbl">شربت قهوتي</span></button>
+      <button id="fastWaterBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg><span id="fastWaterLbl">كوب ماء</span></button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="row"><h3 style="margin:0">الوجبات</h3><span class="spacer"></span>
+      <div class="tabs"><button data-day="0">اليوم</button><button data-day="1">الغد</button></div>
+    </div>
+    <p class="muted" id="mealsDay" style="margin:0 0 4px;font-size:14px"></p>
+    <div id="meals"></div>
+    <div class="total" id="protTotal"></div>
+  </div>
+
+  <div class="card">
+    <h3>التزامك هذا الأسبوع</h3>
+    <div class="dots" id="dots"></div>
+    <button class="primary" id="logFastBtn">أتممت صيام اليوم</button>
+  </div>
+ </div>
+</section>
+
+<!-- ============ SETTINGS ============ -->
+<div class="scrim" id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="setTitle">
+  <div class="grab"></div>
+  <div class="row"><h2 id="setTitle">الإعدادات</h2><span class="spacer"></span><button class="btn ghost" id="closeSheet">تم</button></div>
+
+  <div class="field">
+    <label for="nameIn">اسمك</label>
+    <input type="text" id="nameIn" autocomplete="given-name">
+  </div>
+  <div class="field">
+    <span class="lbl">بداية الصيام</span>
+    <div class="opts" id="startOpts"><button data-v="20">٨ مساءً</button><button data-v="21">٩ مساءً</button></div>
+    <p class="hint" id="startHint"></p>
+  </div>
+  <div class="field">
+    <label for="goalIn">هدف الماء اليومي: <span id="goalVal"></span></label>
+    <input type="range" id="goalIn" min="1500" max="4000" step="250">
+    <div class="row" style="margin-top:8px">
+      <input type="number" id="weightIn" placeholder="وزنك بالكيلو" inputmode="decimal" style="flex:1">
+      <button class="btn ghost" id="calcGoal">احسب هدفي</button>
+    </div>
+    <p class="hint">الحساب التقريبي: ٣٣ مل لكل كيلو من وزنك.</p>
+  </div>
+  <div class="field">
+    <span class="lbl">حجم الكوب</span>
+    <div class="opts" id="cupOpts"><button data-v="200">٢٠٠ مل</button><button data-v="250">٢٥٠ مل</button><button data-v="300">٣٠٠ مل</button></div>
+  </div>
+  <div class="field">
+    <span class="lbl">ذكّرني بالماء كل</span>
+    <div class="opts" id="everyOpts"><button data-v="30">٣٠ د</button><button data-v="45">٤٥ د</button><button data-v="60">ساعة</button><button data-v="90">ساعة ونصف</button><button data-v="120">ساعتين</button></div>
+  </div>
+  <div class="field">
+    <span class="lbl">ساعات التذكير</span>
+    <div class="row"><span>من</span><select id="wakeFrom"></select><span>إلى</span><select id="wakeTo"></select></div>
+  </div>
+  <div class="field">
+    <div class="row"><span class="lbl" style="margin:0">تنبيهات بداية الصيام ونهايته</span><span class="spacer"></span><button class="switch" role="switch" id="fastSwitch" aria-label="تنبيهات الصيام"></button></div>
+  </div>
+  <div class="field">
+    <span class="lbl">إشعارات الجهاز</span>
+    <button class="btn" id="permBtn">تفعيل الإشعارات</button>
+    <p class="hint" id="permHint"></p>
+  </div>
+  <div class="field">
+    <span class="lbl">المظهر</span>
+    <div class="opts" id="themeOpts"><button data-v="auto">تلقائي</button><button data-v="light">فاتح</button><button data-v="dark">داكن</button></div>
+  </div>
+  <div class="field">
+    <button class="btn danger" id="resetToday">مسح ماء اليوم</button>
+  </div>
+</div>
+
+<div class="toast" id="toast" role="status" aria-live="polite"><b id="toastT"></b><span id="toastB"></span></div>
+<div class="burst" id="burst"></div>
+
+<script>
+/* ================= Data ================= */
+// الوجبة الأولى من البيض (الأحد – الخميس)
+var EGG = [
+ {n:"شكشوكة بالفلفل", d:"٣ بيضات مع طماطم وفلفل وبصل بزيت الزيتون، وخيار جانبي", p:20},
+ {n:"أومليت بالسبانخ والفطر", d:"٣ بيضات مع سبانخ وفطر وقطعة جبن قليل الدسم", p:24},
+ {n:"بيض مخفوق مع حلوم وأفوكادو", d:"٣ بيضات مخفوقة، شريحتا حلوم مشوي، ربع أفوكادو", p:28},
+ {n:"بيض مسلوق مع لبنة", d:"٣ بيضات مسلوقة، ٣ ملاعق لبنة، خيار وطماطم وزيتون", p:24},
+ {n:"عجة بالبقدونس والبصل", d:"٣ بيضات مخفوقة بالبقدونس والبصل، مع خيار", p:19},
+ {n:"بيض بالطماطم وجبن قريش", d:"٣ بيضات مع طماطم وبصل مطهوة، وملعقتان جبن قريش", p:24},
+ {n:"بيض مسلوق وسلطة تونة", d:"بيضتان مسلوقتان ونصف علبة تونة بالماء مع خس وليمون", p:30},
+ {n:"بيض عيون بالسماق", d:"بيضتان عيون بزيت الزيتون والسماق، و٣ ملاعق لبنة", p:20},
+ {n:"مافن البيض بالخضار", d:"٤ قطع من البيض المخبوز بالفلفل والبصل والجبن", p:22},
+ {n:"بيض مع شرائح ديك رومي", d:"٣ بيضات مقلية بقليل من الزيت مع ٤ شرائح ديك رومي", p:28},
+ {n:"فريتاتا بالكوسا والجبن", d:"٣ بيضات مخبوزة مع كوسا مبشورة وجبن موزاريلا", p:23},
+ {n:"بيض مخفوق بالزعتر", d:"٣ بيضات بالزعتر وزيت الزيتون مع جبنة بيضاء وزيتون", p:22},
+ {n:"شكشوكة بالفيتا", d:"٣ بيضات في صلصة طماطم مع جبن فيتا مفتت", p:23},
+ {n:"بيض باللحم المفروم", d:"بيضتان مع ١٠٠ غ لحم مفروم قليل الدهن وبصل", p:32}
+];
+// الوجبة الأولى المتنوعة (الجمعة والسبت)
+var VAR = [
+ {n:"فول بزيت الزيتون مع بيضتين", d:"نصف كوب فول مدمس بالليمون والكمون، وبيضتان مسلوقتان", p:24},
+ {n:"زبادي يوناني بالمكسرات", d:"كوب زبادي يوناني بدون سكر مع جوز وتوت وبذور شيا", p:22},
+ {n:"صحن جبن قريش", d:"كوب جبن قريش مع خيار وطماطم وزيتون وزيت زيتون", p:24},
+ {n:"سلطة دجاج بالأفوكادو", d:"صدر دجاج مشوي مقطع مع خس وأفوكادو وليمون", p:34},
+ {n:"كبدة دجاج بالبصل", d:"١٥٠ غ كبدة دجاج مع بصل وفلفل ودبس رمان خفيف", p:28},
+ {n:"حلوم مشوي بالخضار", d:"٤ شرائح حلوم مع جرجير وطماطم كرزية وخيار", p:20},
+ {n:"سلمون مدخن بالخيار", d:"٨٠ غ سلمون مدخن مع جبن كريمي خفيف وشرائح خيار", p:22},
+ {n:"بان كيك الشوفان والبيض", d:"قطعتان من بيضتين وملعقتي شوفان، مع زبادي يوناني", p:22},
+ {n:"تونة بالليمون والبصل", d:"علبة تونة بالماء مع بصل أحمر وبقدونس وليمون", p:28},
+ {n:"لبنة وخضار مع بيضتين", d:"٣ ملاعق لبنة، بيضتان مسلوقتان، نعناع وخيار وزيتون", p:20}
+];
+var SN = [
+ {n:"زبادي يوناني ولوز", d:"علبة زبادي يوناني بدون سكر وحفنة لوز صغيرة", p:15},
+ {n:"تونة بالخيار", d:"نصف علبة تونة بالماء مع أعواد خيار", p:20},
+ {n:"بيضتان مسلوقتان", d:"مع رشة ملح وفلفل أسود", p:12},
+ {n:"جبن قريش بالخيار", d:"نصف كوب جبن قريش مع خيار ونعناع", p:14},
+ {n:"شرائح ديك رومي", d:"٥ شرائح ملفوفة على خس وخيار", p:15},
+ {n:"لبن وجوز", d:"كوب لبن قليل الدسم وحفنة جوز", p:10},
+ {n:"حلوم مشوي", d:"شريحتان مع طماطم كرزية", p:12},
+ {n:"مخفوق بروتين", d:"مكيال بروتين مع حليب قليل الدسم وثلج", p:25},
+ {n:"حمص بالطحينة وجزر", d:"٣ ملاعق حمص مع أعواد جزر وخيار", p:7},
+ {n:"تمرتان وحفنة مكسرات", d:"لمرّة في الأسبوع، مع كوب قهوة عربية", p:5},
+ {n:"شرائح تفاح بزبدة الفول", d:"نصف تفاحة مع ملعقة زبدة فول سوداني", p:5},
+ {n:"لبنة بزيت الزيتون", d:"٣ ملاعق لبنة مع خيار وزيتون", p:8}
+];
+var MN = [
+ {n:"صدر دجاج مشوي وسلطة كبيرة", d:"٢٠٠ غ دجاج مشوي، سلطة خضراء بزيت الزيتون والليمون", p:44},
+ {n:"سلمون مشوي مع بروكلي", d:"١٥٠ غ سلمون بالليمون والثوم، وبروكلي على البخار", p:34},
+ {n:"كفتة لحم مع سلطة طحينة", d:"٤ أصابع كفتة مشوية، سلطة طماطم وبقدونس بالطحينة", p:32},
+ {n:"روبيان بالثوم مع كوسا", d:"٢٠٠ غ روبيان بالزبدة والثوم، وكوسا سوتيه", p:36},
+ {n:"هامور مشوي بالخضار", d:"فيليه هامور بالبهارات مع فلفل وباذنجان مشوي", p:35},
+ {n:"دجاج بالكاري وقرنبيط", d:"دجاج بحليب جوز الهند والكاري، مع أرز القرنبيط", p:36},
+ {n:"ستيك لحم مع فطر وسبانخ", d:"١٥٠ غ ستيك مشوي مع فطر وسبانخ بالثوم", p:40},
+ {n:"شيش طاووق وفتوش", d:"أسياخ دجاج مع فتوش بدون خبز ودبس رمان", p:38},
+ {n:"برجر لحم بالخس", d:"قطعتا برجر لحم بدون خبز، ملفوفة بالخس مع طماطم وبصل", p:34},
+ {n:"مكرونة الكوسا بالدجاج", d:"شرائط كوسا مع دجاج وصلصة طماطم وجبن بارميزان", p:34},
+ {n:"سمك بياض بالفرن", d:"سمك بياض بالطماطم والبصل، وسلطة جرجير", p:30},
+ {n:"مقلوبة قرنبيط باللحم", d:"لحم مع قرنبيط مقلي بالفرن، وأرز ٣ ملاعق فقط", p:32},
+ {n:"دجاج تندوري ورايتا", d:"أفخاذ دجاج تندوري مشوية مع رايتا خيار ونعناع", p:36},
+ {n:"صينية خضار ولحم بالفرن", d:"مكعبات لحم مع كوسا وجزر وبصل بالفرن", p:34},
+ {n:"شوربة دجاج وصدر مشوي", d:"شوربة خضار بالدجاج، وصدر دجاج صغير مشوي", p:36},
+ {n:"كبسة دجاج بأرز قليل", d:"ربع دجاجة مع ٣ ملاعق أرز وسلطة كبيرة ودقوس", p:38}
+];
+// الجمعة: وجبة عائلية
+var FR = [
+ {n:"كبسة لحم عائلية", d:"لحم أكثر وأرز أقل (٤ ملاعق)، مع سلطة كبيرة ولبن", p:42},
+ {n:"مندي دجاج", d:"ربع دجاجة مع ٤ ملاعق أرز وسلطة خضراء ودقوس", p:40},
+ {n:"مظبي دجاج", d:"دجاج مشوي على الحجر مع سلطة وأرز قليل", p:42},
+ {n:"مشويات مشكلة", d:"كباب وأوصال وشيش طاووق مع سلطات بدون خبز", p:46},
+ {n:"صيادية سمك", d:"سمك مع أرز صيادية (٤ ملاعق) وسلطة طحينة", p:36},
+ {n:"جريش باللحم", d:"صحن صغير من الجريش مع قطعة لحم وسلطة", p:26}
+];
+var DAYS = ["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
+var DAYS_S = ["أحد","اثنين","ثلاثاء","أربعاء","خميس","جمعة","سبت"];
+var QUOTES = [
+ "كل كوب ماء خطوة صغيرة نحو يوم أخف وتركيز أصفى.",
+ "الالتزام لا يحتاج كمالاً، يحتاج تكراراً.",
+ "صيامك الليلة يبدأ بقرار بسيط بعد العشاء.",
+ "جسمك يتذكر ما تفعله كل يوم، لا ما تفعله مرة.",
+ "القارورة بجانبك نصف المهمة."
+];
+var WATER_NUDGES = [
+ ["كوب ماء الآن؟","مرّ وقت منذ آخر كوب. رشفات قليلة تكفي للبدء."],
+ ["حان وقت الماء","جسمك يحتاج كوباً، والقارورة أقرب مما تظن."],
+ ["استراحة ماء","كوب واحد الآن يرفع تركيزك لما تبقى من اليوم."],
+ ["تذكير لطيف","لم تشرب منذ فترة. هل نضيف كوباً؟"]
+];
+
+/* ================= Storage ================= */
+var KEY = "tawazun.v1";
+var st = {
+  settings:{name:"أنمار", fastStart:20, goal:2500, cup:250, every:60, wakeFrom:7, wakeTo:23, waterOn:true, fastOn:true, theme:"auto", weight:""},
+  water:{}, coffee:{}, fasted:{}, eaten:{}, swaps:{}, fired:{}, lastNudge:0, celebrated:{}
+};
+var firstRun = true;
+try{ var raw = localStorage.getItem(KEY); if(raw){ firstRun = false; var o = JSON.parse(raw); for(var k in o){ if(k==="settings"){ Object.assign(st.settings,o.settings);} else st[k]=o[k]; } } }catch(e){}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(st)); }catch(e){} }
+
+/* ================= Helpers ================= */
+var $ = function(id){ return document.getElementById(id); };
+var AD = "٠١٢٣٤٥٦٧٨٩";
+function ar(s){ return String(s).replace(/[0-9]/g,function(d){return AD[d];}); }
+function num(n){ return ar(Math.round(n)); }
+function lit(ml){ return ar(String(parseFloat((ml/1000).toFixed(2)))).replace(".","٫"); }
+function pad(n){ return (n<10?"0":"")+n; }
+function dkey(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
+function addDays(d,n){ var x=new Date(d); x.setDate(x.getDate()+n); return x; }
+function hourLbl(h){ h=((h%24)+24)%24; var hh=h%12||12; return ar(hh)+(h<12?" ص":" م"); }
+function clock(d){ var h=d.getHours(), m=d.getMinutes(); var hh=h%12||12; return ar(hh+":"+pad(m))+(h<12?" ص":" م"); }
+function dur(ms){ var t=Math.max(0,Math.round(ms/60000)), h=Math.floor(t/60), m=t%60; if(h&&m) return ar(h)+" س "+ar(m)+" د"; if(h) return ar(h)+" س"; return ar(m)+" د"; }
+function cd(ms){ var s=Math.max(0,Math.floor(ms/1000)); return ar(pad(Math.floor(s/3600))+":"+pad(Math.floor(s%3600/60))+":"+pad(s%60)); }
+function todayList(){ var k=dkey(new Date()); return st.water[k]||(st.water[k]=[]); }
+function totalOn(k){ return (st.water[k]||[]).reduce(function(a,b){return a+b.ml;},0); }
+function applyTheme(){ var t=st.settings.theme; if(t==="auto") document.documentElement.removeAttribute("data-theme"); else document.documentElement.setAttribute("data-theme",t); }
+
+/* ================= Fasting logic ================= */
+function fastState(now){
+  now = now||new Date();
+  var S = st.settings.fastStart, E = S-8;
+  var t0 = new Date(now); t0.setHours(0,0,0,0);
+  var es = t0.getTime()+E*36e5, ee = t0.getTime()+S*36e5, n = now.getTime();
+  if(n<es) return {phase:"fast", start:ee-864e5, end:es};
+  if(n<ee) return {phase:"eat", start:es, end:ee};
+  return {phase:"fast", start:ee, end:es+864e5};
+}
+function mealsFor(d){
+  var k = dkey(d), wd = d.getDay();
+  var di = Math.floor(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate())/864e5);
+  var sw = function(s){ return st.swaps[k+":"+s]||0; };
+  var S = st.settings.fastStart, E = S-8;
+  var base = new Date(d); base.setHours(0,0,0,0);
+  var at = function(h){ return new Date(base.getTime()+h*36e5); };
+  var first = wd<=4 ? EGG[(di+sw("m1"))%EGG.length] : VAR[(di+sw("m1"))%VAR.length];
+  var main = wd===5 ? FR[(Math.floor(di/7)+sw("mn"))%FR.length] : MN[(di*3+sw("mn"))%MN.length];
+  return [
+    {slot:"m1", label:"الوجبة الأولى", time:at(E), m:first, egg: wd<=4},
+    {slot:"sn", label:"وجبة خفيفة", time:at(E+3.5), m:SN[(di*7+sw("sn"))%SN.length]},
+    {slot:"mn", label: wd===5?"الوجبة العائلية":"الوجبة الرئيسية", time:at(S-1.5), m:main}
+  ];
+}
+var STAGES = [
+  {h:0, t:"هضم آخر وجبة", s:"الجسم يستفيد من طعام العشاء"},
+  {h:4, t:"استقرار السكر", s:"ينخفض الإنسولين تدريجياً"},
+  {h:12, t:"الاعتماد على الدهون", s:"يبدأ الجسم الاعتماد أكثر على مخزونه"},
+  {h:16, t:"اكتمل الصيام", s:"نافذة الأكل مفتوحة، ابدأ بوجبة غنية بالبروتين"}
+];
+
+/* ================= Streaks ================= */
+function waterStreak(){
+  var g=st.settings.goal, d=new Date(), c=0;
+  if(totalOn(dkey(d))<g) d=addDays(d,-1);
+  while(totalOn(dkey(d))>=g){ c++; d=addDays(d,-1); }
+  return c;
+}
+function fastStreak(){
+  var d=new Date(), c=0;
+  if(!st.fasted[dkey(d)]) d=addDays(d,-1);
+  while(st.fasted[dkey(d)]){ c++; d=addDays(d,-1); }
+  return c;
+}
+
+/* ================= Router ================= */
+var current = "home";
+function show(v){
+  ["home","water","fast"].forEach(function(id){ $(id).hidden = id!==v; });
+  current = v;
+  document.querySelector('meta[name="theme-color"]').setAttribute("content", v==="fast" ? "#1A1D48" : "#0E6BA8");
+  window.scrollTo(0,0);
+  render();
+}
+function route(){ var h=location.hash.replace("#",""); show(h==="water"||h==="fast"?h:"home"); }
+window.addEventListener("hashchange", route);
+$("goWater").onclick = function(){ location.hash="water"; };
+$("goFast").onclick = function(){ location.hash="fast"; };
+document.querySelectorAll("[data-back]").forEach(function(b){ b.onclick=function(){ if(history.length>1) history.back(); else location.hash=""; }; });
+
+/* ================= Render: Home ================= */
+function renderHome(){
+  var h=new Date().getHours(), name=st.settings.name||"";
+  var g = h<12 ? "صباح الخير" : "مساء الخير";
+  $("hello").textContent = name ? g+" يا "+name : g;
+  var tot=totalOn(dkey(new Date())), goal=st.settings.goal, pct=Math.min(1,tot/goal);
+  $("homeFill").style.height = Math.round(pct*100)+"%";
+  $("goWater").classList.toggle("filled", pct>0.62);
+  $("homeWaterBig").textContent = lit(tot)+" لتر";
+  $("homeWaterSub").textContent = pct>=1 ? "أكملت هدفك اليوم ("+lit(goal)+" لتر)" : "من "+lit(goal)+" لتر، بقي "+num(goal-tot)+" مل";
+  var f=fastState(), n=Date.now();
+  if(f.phase==="fast"){
+    $("homeFastBig").textContent = "صائم منذ "+dur(n-f.start);
+    $("homeFastSub").textContent = "الإفطار "+hourLbl(st.settings.fastStart-8)+" بعد "+dur(f.end-n);
+  } else {
+    $("homeFastBig").textContent = "نافذة الأكل";
+    $("homeFastSub").textContent = "يبدأ الصيام "+hourLbl(st.settings.fastStart)+" بعد "+dur(f.end-n);
+  }
+  $("homeNote").textContent = QUOTES[new Date().getDate()%QUOTES.length];
+}
+
+/* ================= Render: Water ================= */
+function waterMsg(p){
+  if(p<=0) return "كوب واحد الآن يصنع فرقاً في تركيزك.";
+  if(p<0.25) return "بداية موفقة، الكوب التالي بعد قليل.";
+  if(p<0.5) return "تقدّم جميل، أنت في الطريق الصحيح.";
+  if(p<0.75) return "تجاوزت النصف، جسمك يشكرك.";
+  if(p<1) return "اقتربت كثيراً، بقي القليل.";
+  return "أكملت هدفك اليوم، أحسنت!";
+}
+function nextNudgeAt(){
+  var s=st.settings, list=todayList(), now=new Date();
+  var last = list.length ? list[list.length-1].t : 0;
+  var wake = new Date(now); wake.setHours(s.wakeFrom,0,0,0);
+  var base = Math.max(last, st.lastNudge||0, wake.getTime());
+  return base + s.every*6e4;
+}
+function renderWater(){
+  var s=st.settings, list=todayList(), tot=totalOn(dkey(new Date())), p=Math.min(1,tot/s.goal);
+  $("lvl").style.transform = "translateY("+(292-p*262)+"px)";
+  $("wAmount").innerHTML = num(tot)+"<small>مل</small>";
+  var cups=Math.ceil(Math.max(0,s.goal-tot)/s.cup);
+  $("wOf").textContent = p>=1 ? "من هدف "+lit(s.goal)+" لتر" : "من "+lit(s.goal)+" لتر، بقي "+ar(cups)+(cups===1?" كوب":cups===2?" كوبان":cups<=10?" أكواب":" كوباً");
+  $("wMsg").textContent = waterMsg(p);
+  $("cupLbl").textContent = ar(s.cup);
+  $("undoBtn").hidden = !list.length;
+  var ws=waterStreak(); $("waterStreak").textContent = ws ? "💧 "+ar(ws)+" يوم متتالي" : "💧 ابدأ سلسلتك";
+  // reminder
+  $("waterSwitch").setAttribute("aria-checked", s.waterOn);
+  var now=new Date(), h=now.getHours();
+  if(!s.waterOn){ $("nextRem").textContent="متوقف"; $("remHint").textContent="فعّله لتصلك تذكيرات كل "+everyLbl(s.every)+"."; }
+  else if(p>=1){ $("nextRem").textContent="هدفك مكتمل"; $("remHint").textContent="التذكير يعود غداً من "+hourLbl(s.wakeFrom)+"."; }
+  else if(h<s.wakeFrom||h>=s.wakeTo){ $("nextRem").textContent="من "+hourLbl(s.wakeFrom); $("remHint").textContent="خارج ساعات التذكير."; }
+  else { var left=nextNudgeAt()-now.getTime(); $("nextRem").textContent = left<=0 ? "الآن" : "بعد "+dur(left); $("remHint").textContent="كل "+everyLbl(s.every)+" من "+hourLbl(s.wakeFrom)+" إلى "+hourLbl(s.wakeTo)+"."; }
+  // week
+  var wb="", d0=new Date();
+  for(var i=6;i>=0;i--){
+    var d=addDays(d0,-i), t=totalOn(dkey(d)), r=Math.min(1,t/s.goal);
+    wb += '<div class="wb" title="'+num(t)+' مل"><i class="'+(r>=1?"full ":"")+(i===0?"today":"")+'" style="height:'+Math.max(4,r*90)+'%"></i><span>'+DAYS_S[d.getDay()]+'</span></div>';
+  }
+  $("weekBars").innerHTML = wb;
+  // log
+  $("wLog").innerHTML = list.length ? list.slice().reverse().map(function(x){ return "<li><span>"+clock(new Date(x.t))+"</span><b>"+num(x.ml)+" مل</b></li>"; }).join("") : '<li><p class="empty">لم تسجل شيئاً اليوم. اضغط «كوب» بعد أول رشفة.</p></li>';
+}
+function everyLbl(m){ return m===60?"ساعة":m===90?"ساعة ونصف":m===120?"ساعتين":ar(m)+" دقيقة"; }
+function addWater(ml){
+  var before=totalOn(dkey(new Date()));
+  todayList().push({t:Date.now(), ml:ml}); save();
+  if(navigator.vibrate) navigator.vibrate(20);
+  var after=before+ml, k=dkey(new Date());
+  if(before<st.settings.goal && after>=st.settings.goal && !st.celebrated[k]){ st.celebrated[k]=1; save(); celebrate(); toast("أكملت هدف اليوم 🎉", lit(st.settings.goal)+" لتر. هذا ما يحتاجه جسمك."); }
+  render();
+}
+document.querySelectorAll(".add").forEach(function(b){ b.onclick=function(){ var v=b.dataset.ml; addWater(v==="cup"?st.settings.cup:+v); }; });
+$("undoBtn").onclick=function(){ todayList().pop(); save(); render(); };
+$("waterSwitch").onclick=function(){ st.settings.waterOn=!st.settings.waterOn; save(); render(); };
+function celebrate(){
+  if(matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  var b=$("burst"), html="";
+  for(var i=0;i<22;i++){ var a=Math.random()*Math.PI*2, r=120+Math.random()*160; html+='<i style="left:50%;top:40%;--x:'+Math.cos(a)*r+'px;--y:'+Math.sin(a)*r+'px;animation-delay:'+(Math.random()*.15)+'s"></i>'; }
+  b.innerHTML=html; setTimeout(function(){ b.innerHTML=""; },1700);
+}
+
+/* ================= Render: Fasting ================= */
+var dayTab = null;
+var C = 2*Math.PI*124;
+function arc(el, fromH, spanH){
+  var len=Math.max(0,spanH/24*C);
+  el.setAttribute("stroke-dasharray", len+" "+C);
+  el.setAttribute("transform","rotate("+(-90+fromH/24*360)+" 150 150)");
+}
+function renderFast(){
+  var s=st.settings, S=s.fastStart, E=S-8, f=fastState(), now=new Date(), n=now.getTime();
+  var fasting=f.phase==="fast";
+  var hNow = now.getHours()+now.getMinutes()/60;
+  arc($("eatArc"), E, 8);
+  var p=$("progArc"); p.setAttribute("stroke", fasting ? "#F3EEDC" : "#E9B44C");
+  var startH = new Date(f.start).getHours()+new Date(f.start).getMinutes()/60;
+  arc(p, startH, (n-f.start)/36e5);
+  var ang=(hNow/24*360-90)*Math.PI/180;
+  $("nowDot").setAttribute("cx",150+124*Math.cos(ang)); $("nowDot").setAttribute("cy",150+124*Math.sin(ang));
+  $("phase").textContent = fasting ? "صائم منذ "+dur(n-f.start) : "نافذة الأكل مفتوحة";
+  $("count").textContent = cd(f.end-n);
+  $("countSub").textContent = fasting ? "حتى الإفطار "+hourLbl(E) : "حتى بداية الصيام "+hourLbl(S);
+  document.querySelectorAll(".seg button").forEach(function(b){ b.setAttribute("aria-pressed", +b.dataset.start===S); });
+  $("segNote").textContent = "صيام ١٦ ساعة، والأكل من "+hourLbl(E)+" إلى "+hourLbl(S)+".";
+  // stages
+  var el = fasting ? (n-f.start)/36e5 : 16;
+  var curI=0; STAGES.forEach(function(x,i){ if(el>=x.h) curI=i; });
+  $("stages").innerHTML = STAGES.map(function(x,i){
+    return '<li class="'+(el>=x.h?"on ":"")+(i===curI?"now":"")+'"><span class="h">'+ar(x.h)+' س</span><div><b>'+x.t+'</b><small>'+x.s+'</small></div></li>';
+  }).join("");
+  // coffee / water
+  var k=dkey(now), cf=st.coffee[k];
+  $("coffeeBtn").classList.toggle("done", !!cf);
+  $("coffeeLbl").textContent = cf ? "قهوتك "+clock(new Date(cf)) : "شربت قهوتي";
+  $("fastWaterLbl").textContent = "كوب ماء ("+lit(totalOn(k))+" ل)";
+  // meals
+  if(dayTab===null) dayTab = (fasting && hNow>=S) ? 1 : 0;
+  document.querySelectorAll(".tabs button").forEach(function(b){ b.setAttribute("aria-pressed", +b.dataset.day===dayTab); });
+  var d=addDays(now,dayTab), list=mealsFor(d), dk=dkey(d), sum=0;
+  $("mealsDay").textContent = DAYS[d.getDay()] + (d.getDay()<=4 ? "، الوجبة الأولى من البيض" : "، يوم تنويع");
+  $("meals").innerHTML = list.map(function(x){
+    var ate = !!st.eaten[dk+":"+x.slot]; sum+=x.m.p;
+    return '<div class="meal'+(ate?" eaten":"")+'"><div class="t">'+clock(x.time)+'<small>'+x.label+'</small></div><div><h4>'+x.m.n+'</h4><p>'+x.m.d+'</p><div class="acts">'+
+      '<button class="'+(ate?"ate":"")+'" data-eat="'+dk+":"+x.slot+'">'+(ate?"أكلتها ✓":"أكلتها")+'</button>'+
+      '<button data-swap="'+dk+":"+x.slot+'">بدّل</button><span class="p">≈ '+ar(x.m.p)+' غ بروتين</span></div></div></div>';
+  }).join("");
+  $("protTotal").textContent = "مجموع البروتين ≈ "+ar(sum)+" غ";
+  // dots
+  var dots="", ws=addDays(now,-now.getDay()); // starts Sunday
+  for(var i=0;i<7;i++){ var dd=addDays(ws,i), kk=dkey(dd); dots+='<div><i class="'+(st.fasted[kk]?"y ":"")+(kk===k?"t":"")+'"></i>'+DAYS_S[dd.getDay()]+'</div>'; }
+  $("dots").innerHTML=dots;
+  var fs=fastStreak(); $("fastStreak").textContent = fs ? "🌙 "+ar(fs)+" يوم متتالي" : "🌙 ابدأ سلسلتك";
+  var lb=$("logFastBtn");
+  if(st.fasted[k]){ lb.textContent="سُجّل صيام اليوم ✓"; lb.disabled=true; }
+  else if(fasting && hNow>=S){ lb.textContent="يُسجَّل غداً بعد الإفطار"; lb.disabled=true; }
+  else if(fasting){ lb.textContent="أكمل صيامك أولاً"; lb.disabled=true; }
+  else { lb.textContent="أتممت صيام اليوم"; lb.disabled=false; }
+}
+document.querySelectorAll(".seg button").forEach(function(b){ b.onclick=function(){ st.settings.fastStart=+b.dataset.start; dayTab=null; save(); render(); toast("تم تغيير الموعد","يبدأ صيامك "+hourLbl(st.settings.fastStart)+" وتفطر "+hourLbl(st.settings.fastStart-8)+"."); }; });
+document.querySelectorAll(".tabs button").forEach(function(b){ b.onclick=function(){ dayTab=+b.dataset.day; render(); }; });
+$("meals").addEventListener("click", function(e){
+  var t=e.target.closest("button"); if(!t) return;
+  if(t.dataset.eat){ var k=t.dataset.eat; st.eaten[k]=!st.eaten[k]; if(navigator.vibrate) navigator.vibrate(15); }
+  if(t.dataset.swap){ var s=t.dataset.swap; st.swaps[s]=(st.swaps[s]||0)+1; st.eaten[s]=false; }
+  save(); render();
+});
+$("coffeeBtn").onclick=function(){ var k=dkey(new Date()); st.coffee[k]=st.coffee[k]?null:Date.now(); save(); render(); };
+$("fastWaterBtn").onclick=function(){ addWater(st.settings.cup); toast("أضفت كوب ماء","الماء يخفف الجوع أثناء الصيام."); };
+$("logFastBtn").onclick=function(){ st.fasted[dkey(new Date())]=true; save(); celebrate(); toast("أحسنت 🌙","سجّلنا صيام اليوم. سلسلتك "+ar(fastStreak())+" يوم."); render(); };
+
+/* ================= Settings ================= */
+function openSheet(o){ $("sheet").classList.toggle("open",o); $("scrim").classList.toggle("open",o); if(o) fillSettings(); }
+$("gearBtn").onclick=function(){ openSheet(true); };
+$("closeSheet").onclick=$("scrim").onclick=function(){ openSheet(false); render(); };
+function setOpts(id,val){ document.querySelectorAll("#"+id+" button").forEach(function(b){ b.setAttribute("aria-pressed", String(b.dataset.v)===String(val)); }); }
+function fillSettings(){
+  var s=st.settings;
+  $("nameIn").value=s.name; setOpts("startOpts",s.fastStart); setOpts("cupOpts",s.cup); setOpts("everyOpts",s.every); setOpts("themeOpts",s.theme);
+  $("startHint").textContent="الأكل من "+hourLbl(s.fastStart-8)+" إلى "+hourLbl(s.fastStart)+".";
+  $("goalIn").value=s.goal; $("goalVal").textContent=lit(s.goal)+" لتر"; $("weightIn").value=s.weight||"";
+  var opt=""; for(var h=5;h<=24;h++) opt+='<option value="'+h+'">'+hourLbl(h)+'</option>';
+  $("wakeFrom").innerHTML=opt; $("wakeTo").innerHTML=opt; $("wakeFrom").value=s.wakeFrom; $("wakeTo").value=s.wakeTo;
+  $("fastSwitch").setAttribute("aria-checked", s.fastOn);
+  permText();
+}
+function bindOpts(id,key,cast){ document.querySelectorAll("#"+id+" button").forEach(function(b){ b.onclick=function(){ st.settings[key]=cast(b.dataset.v); save(); fillSettings(); if(key==="theme") applyTheme(); }; }); }
+bindOpts("startOpts","fastStart",Number); bindOpts("cupOpts","cup",Number); bindOpts("everyOpts","every",Number); bindOpts("themeOpts","theme",String);
+$("nameIn").oninput=function(){ st.settings.name=this.value.trim(); save(); };
+$("goalIn").oninput=function(){ st.settings.goal=+this.value; $("goalVal").textContent=lit(st.settings.goal)+" لتر"; save(); };
+$("calcGoal").onclick=function(){ var w=parseFloat(String($("weightIn").value).replace(/[٠-٩]/g,function(c){return AD.indexOf(c);})); if(!w||w<30||w>250){ toast("أدخل وزناً صحيحاً","بالكيلوغرام، مثلاً ٧٥."); return; } st.settings.weight=w; st.settings.goal=Math.min(4000,Math.max(1500,Math.round(w*33/250)*250)); save(); fillSettings(); toast("تم ضبط هدفك",lit(st.settings.goal)+" لتر يومياً."); };
+$("wakeFrom").onchange=function(){ st.settings.wakeFrom=+this.value; save(); };
+$("wakeTo").onchange=function(){ st.settings.wakeTo=+this.value; save(); };
+$("fastSwitch").onclick=function(){ st.settings.fastOn=!st.settings.fastOn; save(); fillSettings(); };
+$("resetToday").onclick=function(){ st.water[dkey(new Date())]=[]; save(); fillSettings(); toast("مُسح سجل اليوم","ابدأ من جديد بكوب."); };
+function permText(){
+  var standalone = window.navigator.standalone || matchMedia("(display-mode: standalone)").matches;
+  if(!("Notification" in window)){ $("permBtn").hidden=true; $("permHint").textContent = standalone ? "هذا الجهاز لا يدعم إشعارات المتصفح. ستظهر التنبيهات داخل التطبيق مع صوت واهتزاز." : "على الآيفون: أضف التطبيق إلى الشاشة الرئيسية أولاً من Safari، ثم افتحه من الأيقونة وفعّل الإشعارات."; return; }
+  $("permBtn").hidden = Notification.permission==="granted";
+  $("permHint").textContent = Notification.permission==="granted" ? "الإشعارات مفعّلة. تصلك التنبيهات ما دام التطبيق مفتوحاً أو في الخلفية القريبة." : Notification.permission==="denied" ? "الإشعارات مرفوضة. فعّلها من إعدادات الجهاز لهذا التطبيق." : "تتيح وصول التنبيه حتى لو كنت في تطبيق آخر.";
+}
+$("permBtn").onclick=function(){ if(!("Notification" in window)) return; Notification.requestPermission().then(function(){ permText(); if(Notification.permission==="granted") notify("الإشعارات تعمل","سنذكرك بالماء ومواعيد الصيام.","home"); }); };
+
+/* ================= Notifications engine ================= */
+var swReg=null;
+if("serviceWorker" in navigator && location.protocol==="https:"){ navigator.serviceWorker.register("sw.js").then(function(r){ swReg=r; }).catch(function(){}); }
+var actx=null;
+function chime(){
+  try{ actx = actx || new (window.AudioContext||window.webkitAudioContext)();
+    [660,880].forEach(function(f,i){ var o=actx.createOscillator(), g=actx.createGain(); o.frequency.value=f; o.type="sine"; g.gain.setValueAtTime(0.0001,actx.currentTime+i*.18); g.gain.exponentialRampToValueAtTime(0.18,actx.currentTime+i*.18+.02); g.gain.exponentialRampToValueAtTime(0.0001,actx.currentTime+i*.18+.5); o.connect(g); g.connect(actx.destination); o.start(actx.currentTime+i*.18); o.stop(actx.currentTime+i*.18+.55); });
+  }catch(e){}
+}
+document.addEventListener("pointerdown", function(){ try{ actx = actx || new (window.AudioContext||window.webkitAudioContext)(); if(actx.state==="suspended") actx.resume(); }catch(e){} }, {once:true});
+var toastTimer;
+function toast(t,b){ $("toastT").textContent=t; $("toastB").textContent=b||""; $("toast").classList.add("show"); clearTimeout(toastTimer); toastTimer=setTimeout(function(){ $("toast").classList.remove("show"); },4200); }
+function notify(title, body, view){
+  if(document.visibilityState==="visible"){ toast(title, body); chime(); if(navigator.vibrate) navigator.vibrate([60,40,60]); }
+  if("Notification" in window && Notification.permission==="granted" && document.visibilityState!=="visible"){
+    var opts={body:body, icon:"icon-192.png", badge:"icon-192.png", tag:view+"-"+title, data:{view:view}};
+    if(swReg && swReg.showNotification) swReg.showNotification(title, opts); else { try{ new Notification(title, opts); }catch(e){} }
+  }
+}
+function checkReminders(){
+  var s=st.settings, now=new Date(), n=now.getTime(), k=dkey(now);
+  var fired = st.fired[k] || (st.fired[k]={});
+  var h = now.getHours()+now.getMinutes()/60, S=s.fastStart, E=S-8;
+  if(s.fastOn){
+    [
+      {id:"pre"+S, at:S-0.5, t:"بقي ٣٠ دقيقة على الصيام", b:"وقت مناسب لوجبتك الأخيرة وكوب ماء كبير."},
+      {id:"start"+S, at:S, t:"بدأ وقت الصيام 🌙", b:"صيامك حتى "+hourLbl(E)+" غداً. الماء والقهوة السوداء مسموحان."},
+      {id:"end"+S, at:E, t:"انتهى الصيام ☀️", b:"نافذة الأكل مفتوحة، ابدأ بوجبة غنية بالبروتين."}
+    ].forEach(function(ev){ if(h>=ev.at && h<ev.at+0.25 && !fired[ev.id]){ fired[ev.id]=1; notify(ev.t, ev.b, "fast"); } });
+  }
+  if(s.waterOn && h>=s.wakeFrom && h<s.wakeTo && totalOn(k)<s.goal && n>=nextNudgeAt()){
+    st.lastNudge=n; var m=WATER_NUDGES[Math.floor(Math.random()*WATER_NUDGES.length)];
+    notify(m[0], m[1]+" بقي "+num(s.goal-totalOn(k))+" مل.", "water");
+  }
+  // keep 60 days only
+  Object.keys(st.fired).forEach(function(x){ if(x<dkey(addDays(now,-3))) delete st.fired[x]; });
+  Object.keys(st.water).forEach(function(x){ if(x<dkey(addDays(now,-60))) delete st.water[x]; });
+  save();
+}
+
+/* ================= Loop ================= */
+function render(){ if(current==="home") renderHome(); else if(current==="water") renderWater(); else renderFast(); }
+setInterval(function(){ if(current==="fast") renderFast(); }, 1000);
+setInterval(function(){ checkReminders(); if(current!=="fast") render(); }, 30000);
+document.addEventListener("visibilitychange", function(){ if(document.visibilityState==="visible"){ checkReminders(); render(); } });
+if(firstRun){ st.lastNudge = Date.now(); save(); }
+applyTheme(); route(); checkReminders();
+</script>
+</body>
+</html>
