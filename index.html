@@ -154,6 +154,12 @@ h1,h2,h3{font-family:var(--display);margin:0;font-weight:700}
 .allow button{border-radius:16px;padding:12px;background:rgba(255,255,255,.08);font-weight:700;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px}
 .allow button.done{background:var(--gold-soft);color:var(--gold)}
 .allow svg{width:20px;height:20px}
+.okList{list-style:none;margin:14px 0 0;padding:0}
+.okList li{display:grid;grid-template-columns:34px 1fr;gap:10px;align-items:center;padding:9px 0;border-top:1px solid rgba(255,255,255,.08)}
+.okList li.grp{display:block;border-top:0;padding:10px 0 2px;font-family:var(--display);font-weight:700;font-size:14px;color:var(--gold)}
+.okList .e{font-size:22px;text-align:center}
+.okList b{display:block;font-family:var(--display);font-weight:500;font-size:16px}
+.okList small{font-size:13px;opacity:.72}
 .tabs{display:flex;gap:8px;margin:2px 0 6px}
 .tabs button{padding:6px 14px;border-radius:999px;font-weight:700;font-size:14px;background:rgba(255,255,255,.06)}
 .tabs button[aria-pressed="true"]{background:var(--moon);color:var(--night)}
@@ -355,11 +361,12 @@ h1,h2,h3{font-family:var(--display);margin:0;font-weight:700}
 
   <div class="card">
     <h3>مسموح أثناء الصيام</h3>
-    <p class="muted" style="margin:0;font-size:15px">الماء والقهوة السوداء بدون سكر لا يكسران الصيام.</p>
+    <p class="muted" style="margin:0;font-size:15px">كل ما لا يحتوي على سعرات تُذكر ولا سكر.</p>
     <div class="allow">
       <button id="coffeeBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5z"/><path d="M16 11h1.5a2.5 2.5 0 0 1 0 5H16"/><path d="M8 3v2M12 3v2"/></svg><span id="coffeeLbl">شربت قهوتي</span></button>
       <button id="fastWaterBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z"/></svg><span id="fastWaterLbl">كوب ماء</span></button>
     </div>
+    <ul class="okList" id="okList"></ul>
   </div>
 
   <div class="card">
@@ -507,6 +514,18 @@ var FR = [
  {n:"مشويات مشكلة", d:"كباب وأوصال وشيش طاووق مع سلطات بدون خبز", p:46},
  {n:"صيادية سمك", d:"سمك مع أرز صيادية (٤ ملاعق) وسلطة طحينة", p:36},
  {n:"جريش باللحم", d:"صحن صغير من الجريش مع قطعة لحم وسلطة", p:26}
+];
+var ALLOWED = [
+ {g:"لا يكسر الصيام"},
+ {e:"💧", n:"الماء", d:"بارداً أو دافئاً، وهو أهم ما تشربه أثناء الصيام"},
+ {e:"🫧", n:"الماء الفوار", d:"بشرط أن يكون غير محلّى"},
+ {e:"☕", n:"القهوة السوداء", d:"بدون سكر أو حليب"},
+ {e:"🍵", n:"الشاي الأسود والأخضر", d:"بدون سكر، والأخضر يخفف الجوع"},
+ {e:"🌿", n:"الأعشاب", d:"نعناع، بابونج، زنجبيل، قرفة، يانسون بدون سكر"},
+ {g:"مقبول عند الحاجة"},
+ {e:"🧂", n:"رشة ملح أو إلكترولايت بدون سكر", d:"مفيد عند الصداع أو الدوخة، خاصة في الأيام الأولى والحر"},
+ {e:"🍋", n:"ماء بشريحة ليمون", d:"سعراته ضئيلة جداً"},
+ {e:"🫖", n:"القهوة العربية بالهيل", d:"بدون تمر"}
 ];
 var DAYS = ["الأحد","الاثنين","الثلاثاء","الأربعاء","الخميس","الجمعة","السبت"];
 var DAYS_S = ["أحد","اثنين","ثلاثاء","أربعاء","خميس","جمعة","سبت"];
@@ -763,6 +782,8 @@ $("meals").addEventListener("click", function(e){
 $("coffeeBtn").onclick=function(){ var k=dkey(new Date()); st.coffee[k]=st.coffee[k]?null:Date.now(); save(); render(); };
 $("fastWaterBtn").onclick=function(){ addWater(st.settings.cup); toast("أضفت كوب ماء","الماء يخفف الجوع أثناء الصيام."); };
 $("logFastBtn").onclick=function(){ st.fasted[dkey(new Date())]=true; save(); celebrate(); toast("أحسنت 🌙","سجّلنا صيام اليوم. سلسلتك "+ar(fastStreak())+" يوم."); render(); };
+
+$("okList").innerHTML = ALLOWED.map(function(x){ return x.g ? '<li class="grp">'+x.g+'</li>' : '<li><span class="e" aria-hidden="true">'+x.e+'</span><div><b>'+x.n+'</b><small>'+x.d+'</small></div></li>'; }).join("");
 
 /* ================= Settings ================= */
 function openSheet(o){ $("sheet").classList.toggle("open",o); $("scrim").classList.toggle("open",o); if(o) fillSettings(); }
