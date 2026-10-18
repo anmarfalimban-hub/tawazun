@@ -203,6 +203,15 @@ h1,h2,h3{font-family:var(--display);margin:0;font-weight:700}
 .btn.ghost{background:transparent;color:var(--water);border:1px solid var(--water)}
 .btn.danger{background:transparent;color:#C2413B;border:1px solid #C2413B}
 
+/* ===== Welcome ===== */
+.welcome{position:fixed;inset:0;z-index:70;display:grid;place-items:center;padding:24px;background:radial-gradient(120% 80% at 50% 0%,#2B2E6E,#0E3E66)}
+.wbox{width:min(380px,100%);background:var(--surface);color:var(--ink);border-radius:28px;padding:28px 22px 18px;text-align:center}
+.wbox h2{font-size:26px;margin:10px 0 4px}
+.wbox p{margin:0 0 16px}
+.wbox input{width:100%;padding:14px;border-radius:14px;border:1px solid var(--line);background:var(--bg);color:var(--ink);font:inherit;font-size:18px;text-align:center}
+.wbox .btn{width:100%;margin-top:12px;padding:14px;font-size:17px}
+.hello b{color:var(--ink);font-weight:700}
+
 /* ===== Toast + celebration ===== */
 .toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top,0px));transform:translate(-50%,-160%);z-index:60;width:min(92vw,440px);background:var(--surface);color:var(--ink);border:1px solid var(--line);border-radius:18px;padding:14px 16px;box-shadow:0 12px 30px rgba(6,30,50,.18);transition:transform .35s cubic-bezier(.2,.8,.2,1)}
 .toast.show{transform:translate(-50%,0)}
@@ -439,6 +448,17 @@ h1,h2,h3{font-family:var(--display);margin:0;font-weight:700}
   </div>
 </div>
 
+<div class="welcome" id="welcome" hidden role="dialog" aria-modal="true" aria-labelledby="wTitle">
+  <div class="wbox">
+    <svg viewBox="0 0 64 64" width="64" height="64" aria-hidden="true"><path d="M32 6s18 19 18 32a18 18 0 0 1-36 0C14 25 32 6 32 6z" fill="#3FB8E0"/><path d="M38 30a9 9 0 1 0 6 13 7 7 0 1 1-6-13z" fill="#E9B44C"/></svg>
+    <h2 id="wTitle">أهلاً بك في توازن</h2>
+    <p class="muted">ما الاسم الذي تحب أن نناديك به؟</p>
+    <input type="text" id="wName" placeholder="اكتب اسمك" autocomplete="given-name" maxlength="30">
+    <button class="btn" id="wSave">ابدأ</button>
+    <button class="undo" id="wSkip">لاحقاً</button>
+  </div>
+</div>
+
 <div class="toast" id="toast" role="status" aria-live="polite"><b id="toastT"></b><span id="toastB"></span></div>
 <div class="burst" id="burst"></div>
 
@@ -546,7 +566,7 @@ var WATER_NUDGES = [
 /* ================= Storage ================= */
 var KEY = "tawazun.v1";
 var st = {
-  settings:{name:"أنمار", fastStart:20, goal:2500, cup:250, every:60, wakeFrom:7, wakeTo:23, waterOn:true, fastOn:true, theme:"auto", weight:""},
+  settings:{name:"", named:false, fastStart:20, goal:2500, cup:250, every:60, wakeFrom:7, wakeTo:23, waterOn:true, fastOn:true, theme:"auto", weight:""},
   water:{}, coffee:{}, fasted:{}, eaten:{}, swaps:{}, fired:{}, lastNudge:0, celebrated:{}
 };
 var firstRun = true;
@@ -559,6 +579,7 @@ var AD = "٠١٢٣٤٥٦٧٨٩";
 function ar(s){ return String(s).replace(/[0-9]/g,function(d){return AD[d];}); }
 function num(n){ return ar(Math.round(n)); }
 function lit(ml){ return ar(String(parseFloat((ml/1000).toFixed(2)))).replace(".","٫"); }
+function esc(t){ return String(t).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
 function pad(n){ return (n<10?"0":"")+n; }
 function dkey(d){ return d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate()); }
 function addDays(d,n){ var x=new Date(d); x.setDate(x.getDate()+n); return x; }
@@ -635,7 +656,7 @@ document.querySelectorAll("[data-back]").forEach(function(b){ b.onclick=function
 function renderHome(){
   var h=new Date().getHours(), name=st.settings.name||"";
   var g = h<12 ? "صباح الخير" : "مساء الخير";
-  $("hello").textContent = name ? g+" يا "+name : g;
+  $("hello").innerHTML = name ? g+" يا <b>"+esc(name)+"</b>" : g;
   var tot=totalOn(dkey(new Date())), goal=st.settings.goal, pct=Math.min(1,tot/goal);
   $("homeFill").style.height = Math.round(pct*100)+"%";
   $("goWater").classList.toggle("filled", pct>0.62);
@@ -659,7 +680,7 @@ function waterMsg(p){
   if(p<0.5) return "تقدّم جميل، أنت في الطريق الصحيح.";
   if(p<0.75) return "تجاوزت النصف، جسمك يشكرك.";
   if(p<1) return "اقتربت كثيراً، بقي القليل.";
-  return "أكملت هدفك اليوم، أحسنت!";
+  return "أكملت هدفك اليوم، أحسنت"+(st.settings.name?" يا "+st.settings.name:"")+"!";
 }
 function nextNudgeAt(){
   var s=st.settings, list=todayList(), now=new Date();
@@ -781,7 +802,7 @@ $("meals").addEventListener("click", function(e){
 });
 $("coffeeBtn").onclick=function(){ var k=dkey(new Date()); st.coffee[k]=st.coffee[k]?null:Date.now(); save(); render(); };
 $("fastWaterBtn").onclick=function(){ addWater(st.settings.cup); toast("أضفت كوب ماء","الماء يخفف الجوع أثناء الصيام."); };
-$("logFastBtn").onclick=function(){ st.fasted[dkey(new Date())]=true; save(); celebrate(); toast("أحسنت 🌙","سجّلنا صيام اليوم. سلسلتك "+ar(fastStreak())+" يوم."); render(); };
+$("logFastBtn").onclick=function(){ st.fasted[dkey(new Date())]=true; save(); celebrate(); toast("أحسنت"+(st.settings.name?" يا "+st.settings.name:"")+" 🌙","سجّلنا صيام اليوم. سلسلتك "+ar(fastStreak())+" يوم."); render(); };
 
 $("okList").innerHTML = ALLOWED.map(function(x){ return x.g ? '<li class="grp">'+x.g+'</li>' : '<li><span class="e" aria-hidden="true">'+x.e+'</span><div><b>'+x.n+'</b><small>'+x.d+'</small></div></li>'; }).join("");
 
@@ -863,6 +884,12 @@ setInterval(function(){ if(current==="fast") renderFast(); }, 1000);
 setInterval(function(){ checkReminders(); if(current!=="fast") render(); }, 30000);
 document.addEventListener("visibilitychange", function(){ if(document.visibilityState==="visible"){ checkReminders(); render(); } });
 if(firstRun){ st.lastNudge = Date.now(); save(); }
+function closeWelcome(name){ if(name!==undefined) st.settings.name=name; st.settings.named=true; save(); $("welcome").hidden=true; render(); if(st.settings.name) toast("أهلاً يا "+st.settings.name,"اختر الماء أو الصيام وابدأ يومك."); }
+if(!st.settings.named && !st.settings.name){ $("welcome").hidden=false; setTimeout(function(){ $("wName").focus(); },300); }
+else if(st.settings.name){ st.settings.named=true; }
+$("wSave").onclick=function(){ var v=$("wName").value.trim(); if(!v){ $("wName").focus(); return; } closeWelcome(v); };
+$("wName").onkeydown=function(e){ if(e.key==="Enter") $("wSave").click(); };
+$("wSkip").onclick=function(){ closeWelcome(); };
 applyTheme(); route(); checkReminders();
 </script>
 </body>
